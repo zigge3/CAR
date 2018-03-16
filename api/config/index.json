@@ -1,0 +1,4 @@
+{
+  "dbUri": "mongodb://localhost/lunchapp",
+  "jwtSecret": "a secret phrase!!"
+}
