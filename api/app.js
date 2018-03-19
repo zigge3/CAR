@@ -5,10 +5,42 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+
+
 var index = require('./routes/index');
 var users = require('./routes/users');
 
-var app = express();
+var app = require('express')();
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
+var clients = [];
+var currentCards = [];
+var answers = ['Card nb1', 'Card nb 2'];
+io.on('connection', function(client){
+  client.id = clients.length;
+  clients.push(client);
+  client.on('showCard', ({text}) => {
+    console.log(clients.length);
+    currentCards.push({text, id: client.id});
+    if(currentCards.length === clients.length - 1) {
+      for(let i = 0; i < clients.length; i++) {
+        clients[i].emit('cardsShow', {currentCards});
+      }
+      currentCards = [];
+    }
+  });
+  client.on('requestCards', ({numberOfCards}) => {
+    console.log(numberOfCards);
+    let cards = [];
+    for(let i = 0; i < numberOfCards; i++) {
+      cards.push(answers[Math.floor(Math.random() * answers.length)]);
+    }
+    client.emit('cardRequest', {cards})
+  });
+});
+
+
+server.listen(3000);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
